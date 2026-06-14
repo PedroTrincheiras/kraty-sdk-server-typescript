@@ -1,0 +1,33 @@
+{
+  "name": "@kraty/server-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "echo 'no lint configured yet' && exit 0",
+    "test": "vitest run",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  },
+  "description": "Server-side Node.js SDK for the Kraty game-events platform. Targets the /server/v1 server surface — manual grants, IAP fulfilment, inventory grant/revoke, wallet credit/debit, lobby push.",
+  "engines": {
+    "node": ">=18"
+  }
+}
