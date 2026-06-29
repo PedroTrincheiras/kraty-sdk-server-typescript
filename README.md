@@ -1,23 +1,34 @@
 # @kraty/server-sdk
 
-Server-side Node.js SDK for the Kraty game-events platform. Targets
-the `/server/v1` server surface — manual grants, IAP fulfilment,
-inventory grant / revoke, wallet credit / debit, push-lobbies, and
-unified player snapshots.
+Server-side Node.js SDK for the [Kraty](https://kraty.io) game-events
+platform. Targets the `/server/v1` server surface — manual grants, IAP
+fulfilment, inventory grant / revoke, wallet credit / debit,
+push-lobbies, and unified player snapshots.
+
+> 📖 **Full reference + examples:** <https://kraty.io/docs/server-sdks/node>
+>
+> The docs site has the complete guide — IAP fulfilment patterns,
+> every method, idempotency, retries, error handling. This README is
+> just enough to get started.
 
 > **Server-side only.** Authenticated with a `server_integration`
-> API key that can mint currency and items. Embedding this SDK or
-> its key in a web/mobile bundle is a security incident — use
-> [`@kraty/sdk`](../sdk-typescript/) (web/JS) or
-> [`@kraty/sdk-flutter`](../sdk-flutter/) / [`@kraty/sdk-unity`](../sdk-unity/)
-> for game clients instead.
+> API key that can mint currency and items. Embedding this SDK or its
+> key in a web/mobile bundle is a security incident — use the
+> [TypeScript](https://kraty.io/docs/sdks/typescript),
+> [Unity](https://kraty.io/docs/sdks/unity), or
+> [Flutter](https://kraty.io/docs/sdks/flutter) client SDKs for game
+> clients instead.
 
 ## Install
 
+The package isn't on npm yet — install directly from the public GitHub
+repo against a tagged release. Each release ships compiled `dist/`
+artefacts so no build step is needed on your side.
+
 ```bash
-pnpm add @kraty/server-sdk
-# or
-npm install @kraty/server-sdk
+npm install github:PedroTrincheiras/kraty-sdk-server-typescript#v0.1.0
+# or with pnpm:
+pnpm add github:PedroTrincheiras/kraty-sdk-server-typescript#v0.1.0
 ```
 
 ## Quickstart
@@ -60,12 +71,43 @@ await kraty.grants.create('player_42', {
 ## Resource clients
 
 ```ts
-kraty.grants      // create (manual mint) / ack
-kraty.inventory   // grant / revoke
-kraty.wallet      // credit / debit
-kraty.lobbies     // push (pre-matched) / read
-kraty.players     // get (unified snapshot)
-kraty.health      // ping
+kraty.grants        // create (manual mint) / ack
+kraty.inventory     // grant / revoke
+kraty.wallet        // credit / debit
+kraty.lobbies       // push (pre-matched) / read
+kraty.leaderboards  // submitScore (server-authoritative)
+kraty.events        // reportProgress (server-authoritative)
+kraty.players       // get (unified snapshot)
+kraty.health        // ping
+```
+
+## Server-authoritative scoring
+
+These two methods write through the **trusted** server surface, so they
+are **not** subject to the game's `acceptClientScores` gate — use them
+when scoring lives on your backend (anti-cheat, simulation, server-side
+match results) rather than the game client.
+
+```ts
+// Submit a score onto a score-ranked board.
+// `context` boards: pass `segment` (the bucket value).
+// `progression` boards: omit `segment` (server derives the bucket).
+// unsegmented boards: `segment` is ignored.
+const { leaderboardId, score, rank } = await kraty.leaderboards.submitScore(
+  'player_42',
+  'weekly_high_scores',
+  12_500,
+  { segment: 'NA', idempotencyKey: 'match_abc' },
+);
+
+// Push server-authoritative progress onto an in-flight event attempt.
+// Returns the updated attempt plus any milestones that fired this call.
+const { attempt, milestonesFired } = await kraty.events.reportProgress(
+  'player_42',
+  'summer_event',
+  attemptId,
+  { mode: 'increment', metricValue: 50, idempotencyKey: 'match_abc' },
+);
 ```
 
 ## Idempotency
@@ -164,6 +206,8 @@ Fires once per HTTP attempt, including retries.
 | `kraty.inventory` | `grant(externalId, itemKey, input)`, `revoke(externalId, itemKey, input)` |
 | `kraty.wallet` | `credit(externalId, economyKey, input)`, `debit(externalId, economyKey, input)` |
 | `kraty.lobbies` | `push(gameId, eventKey, input)`, `read(gameId, lobbyId)` |
+| `kraty.leaderboards` | `submitScore(externalId, key, value, opts?)` → `POST /server/v1/leaderboards/:key/score` |
+| `kraty.events` | `reportProgress(externalId, eventKey, attemptId, input)` → `POST /server/v1/players/:externalId/events/:eventKey/attempts/:attemptId/progress` |
 | `kraty.players` | `get(externalId)` |
 | `kraty.health` | `ping()` |
 

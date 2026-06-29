@@ -316,6 +316,87 @@ export interface MigrateOutcome {
   failures: MigrateFailure[];
 }
 
+// ─── Leaderboards (server-authoritative scoring) ───────────────────
+
+export interface SubmitScoreInput {
+  /**
+   * Segment / bucket selector. Semantics depend on the board's
+   * segmentation:
+   *
+   * - `context` boards: the bucket value to score into.
+   * - `progression` boards: omit — the server derives the bucket from
+   *   the player's progression state.
+   * - unsegmented boards: ignored.
+   */
+  segment?: string;
+  /**
+   * Optional idempotency token. Replaying the same key with the same
+   * body is a no-op; a different body returns 409.
+   */
+  idempotencyKey?: string;
+}
+
+export interface SubmitScoreResult {
+  leaderboardId: string;
+  score: number;
+  /** `null` when the board can't rank this player (e.g. just-joined). */
+  rank: number | null;
+}
+
+// ─── Event progress (server-authoritative) ─────────────────────────
+
+export type AttemptStatus =
+  | 'in_progress'
+  | 'completed'
+  | 'expired'
+  | 'force_completed';
+
+/**
+ * One attempt row — mirrors the client SDK's `Attempt` shape so the
+ * same rendering code works against either surface.
+ */
+export interface Attempt {
+  id: string;
+  eventId: string;
+  eventWindowId: string;
+  leaderboardId: string;
+  playerId: string;
+  startedAt: string;
+  endsAt: string;
+  completedAt: string | null;
+  metrics: Record<string, number>;
+  metricsRaw: Record<string, number>;
+  score: number;
+  status: AttemptStatus;
+}
+
+export interface ReportProgressInput {
+  /** `'set'` writes the value as the new metric; `'increment'` adds to the current. */
+  mode: 'set' | 'increment';
+  metricValue?: number;
+  metrics?: Record<string, number>;
+  /** Override server-side timestamp for replay scenarios. */
+  occurredAt?: string;
+  /** Auto-stamped by the SDK if omitted. */
+  idempotencyKey?: string;
+}
+
+/**
+ * Milestone payouts that fired during a single `reportProgress` call.
+ * `key` identifies which milestone tripped; `grants` carries the
+ * concrete rewards the engine wrote (same shape `grants.create` returns).
+ */
+export interface MilestoneFired {
+  key: string;
+  grants: Grant[];
+}
+
+export interface ReportProgressResult {
+  attempt: Attempt;
+  /** Empty when nothing fired this update — never null. */
+  milestonesFired: MilestoneFired[];
+}
+
 // ─── Ping ──────────────────────────────────────────────────────────
 
 export interface ApiKeyInfo {

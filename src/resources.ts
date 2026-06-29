@@ -21,6 +21,10 @@ import type {
   PlayerExport,
   PlayerSnapshot,
   PushLobbyInput,
+  ReportProgressInput,
+  ReportProgressResult,
+  SubmitScoreInput,
+  SubmitScoreResult,
   UnbanPlayerResult,
 } from './types.js';
 
@@ -225,6 +229,84 @@ export class LobbiesClient {
     const env = await this.client.request<DataEnvelope<Lobby>>(
       'GET',
       `/server/v1/games/${encodeURIComponent(gameId)}/lobbies/${encodeURIComponent(lobbyId)}`,
+    );
+    return env.data;
+  }
+}
+
+/**
+ * `/server/v1/leaderboards/:key/score` — server-authoritative score
+ * submission. Unlike the client SDK's score path, this surface is NOT
+ * subject to the game's `acceptClientScores` gate: the `server_integration`
+ * key is trusted, so studios that keep scoring server-side (anti-cheat,
+ * simulation results) write here.
+ */
+export class LeaderboardsClient {
+  constructor(private readonly client: KratyServerClient) {}
+
+  /**
+   * POST `/server/v1/leaderboards/:key/score` — submit a score for a
+   * player on a score-ranked board.
+   *
+   * <b>Segmentation:</b> on `context` boards pass `opts.segment` as the
+   * bucket value; on `progression` boards omit it (the server derives
+   * the bucket from the player's progression state); on unsegmented
+   * boards it's ignored.
+   *
+   * Returns 404 (`KratyServerError` with `isNotFound`) for an unknown
+   * player or board, and 400 `score_not_supported` for progression-ranked
+   * boards (which don't accept raw scores — adjust the progression item
+   * instead).
+   */
+  async submitScore(
+    externalPlayerId: string,
+    key: string,
+    value: number,
+    opts: SubmitScoreInput = {},
+  ): Promise<SubmitScoreResult> {
+    const body: { externalPlayerId: string; value: number; segment?: string; idempotencyKey?: string } = {
+      externalPlayerId,
+      value,
+    };
+    if (opts.segment !== undefined) body.segment = opts.segment;
+    if (opts.idempotencyKey !== undefined) body.idempotencyKey = opts.idempotencyKey;
+    const env = await this.client.request<DataEnvelope<SubmitScoreResult>>(
+      'POST',
+      `/server/v1/leaderboards/${encodeURIComponent(key)}/score`,
+      body,
+    );
+    return env.data;
+  }
+}
+
+/**
+ * `/server/v1/players/:externalId/events/...` — server-authoritative
+ * event progress. Same shape as the client SDK's progress endpoint, but
+ * driven from your backend (trusted simulation, server-side match
+ * results) rather than the game client.
+ */
+export class EventsClient {
+  constructor(private readonly client: KratyServerClient) {}
+
+  /**
+   * POST
+   * `/server/v1/players/:externalId/events/:eventKey/attempts/:attemptId/progress`
+   * — push a metric update onto an in-flight attempt.
+   *
+   * `mode: 'set'` writes the value as the new metric; `'increment'`
+   * adds to the current. Returns the updated attempt plus any
+   * milestones that fired (and the grants they wrote) this call.
+   */
+  async reportProgress(
+    externalPlayerId: string,
+    eventKey: string,
+    attemptId: string,
+    input: ReportProgressInput,
+  ): Promise<ReportProgressResult> {
+    const env = await this.client.request<DataEnvelope<ReportProgressResult>>(
+      'POST',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/events/${encodeURIComponent(eventKey)}/attempts/${encodeURIComponent(attemptId)}/progress`,
+      input,
     );
     return env.data;
   }

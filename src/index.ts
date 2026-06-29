@@ -1,8 +1,10 @@
 import { KratyServerClient, type KratyServerOptions } from './client.js';
 import {
+  EventsClient,
   GrantsClient,
   HealthClient,
   InventoryClient,
+  LeaderboardsClient,
   LobbiesClient,
   MigrateClient,
   PlayersClient,
@@ -12,9 +14,11 @@ import {
 export { KratyServerClient } from './client.js';
 export type { KratyServerOptions, RetryConfig, RequestInfo } from './client.js';
 export {
+  EventsClient,
   GrantsClient,
   HealthClient,
   InventoryClient,
+  LeaderboardsClient,
   LobbiesClient,
   MigrateClient,
   PlayersClient,
@@ -36,6 +40,8 @@ export type {
   AdjustWalletInput,
   AdjustWalletResult,
   ApiKeyInfo,
+  Attempt,
+  AttemptStatus,
   BanPlayerInput,
   BanPlayerResult,
   CreateGrantInput,
@@ -55,10 +61,15 @@ export type {
   MigrateOutcome,
   MigratePlayerRow,
   MigrateWalletRow,
+  MilestoneFired,
   PingResponse,
   PlayerExport,
   PlayerSnapshot,
   PushLobbyInput,
+  ReportProgressInput,
+  ReportProgressResult,
+  SubmitScoreInput,
+  SubmitScoreResult,
   UnbanPlayerResult,
 } from './types.js';
 
@@ -102,6 +113,8 @@ export class KratyServer {
   readonly inventory: InventoryClient;
   readonly wallet: WalletClient;
   readonly lobbies: LobbiesClient;
+  readonly leaderboards: LeaderboardsClient;
+  readonly events: EventsClient;
   readonly players: PlayersClient;
   readonly health: HealthClient;
   readonly migrate: MigrateClient;
@@ -112,6 +125,8 @@ export class KratyServer {
     this.inventory = new InventoryClient(this.client);
     this.wallet = new WalletClient(this.client);
     this.lobbies = new LobbiesClient(this.client);
+    this.leaderboards = new LeaderboardsClient(this.client);
+    this.events = new EventsClient(this.client);
     this.players = new PlayersClient(this.client);
     this.health = new HealthClient(this.client);
     this.migrate = new MigrateClient(this.client);
