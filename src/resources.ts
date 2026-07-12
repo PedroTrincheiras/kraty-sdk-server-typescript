@@ -22,6 +22,7 @@ import type {
   PlayerSnapshot,
   PushLobbyInput,
   ReportProgressInput,
+  FinishAttemptResult,
   ReportProgressResult,
   SubmitScoreInput,
   SubmitScoreResult,
@@ -31,7 +32,7 @@ import type {
 interface DataEnvelope<T> { data: T; }
 
 /**
- * `/server/v1/players/:externalId/grants` — manual grant minting.
+ * `/server/v1/players/:externalId/grants`: manual grant minting.
  * Used for IAP fulfilment, make-goods, manual operator rewards, and
  * any other server-issued payout.
  */
@@ -39,10 +40,10 @@ export class GrantsClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/players/:externalId/grants` — mint a new grant
+   * POST `/server/v1/players/:externalId/grants`: mint a new grant
    * for the player.
    *
-   * <b>Idempotency:</b> always supply `idempotencyKey` — the SDK
+   * <b>Idempotency:</b> always supply `idempotencyKey`. The SDK
    * also generates one if you don't, but for server-side fulfilment
    * the IAP receipt id is almost always what you want. Replaying the
    * same key with the same body returns the original grant. Replaying
@@ -64,13 +65,13 @@ export class GrantsClient {
   }
 
   /**
-   * POST `/server/v1/players/:externalId/grants/:grantId/ack` —
+   * POST `/server/v1/players/:externalId/grants/:grantId/ack`:
    * server-side claim. Use this when your backend wants to flip a
    * grant to `claimed` without the player's client SDK having to
    * round-trip (e.g. consumable that's already applied server-side).
    * Records `ackedBy='server_api'` on the audit row.
    *
-   * Idempotent on `grantId` — re-acking returns the same row.
+   * Idempotent on `grantId`: re-acking returns the same row.
    */
   async ack(
     externalPlayerId: string,
@@ -87,7 +88,7 @@ export class GrantsClient {
 }
 
 /**
- * `/server/v1/players/:p/inventory(/...)` — server-side mint + revoke
+ * `/server/v1/players/:p/inventory(/...)`: server-side mint + revoke
  * for items in the platform-managed inventory. Only meaningful when
  * the game has `settings.inventoryManagement === 'platform'`.
  */
@@ -95,11 +96,11 @@ export class InventoryClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/players/:p/inventory/:itemKey/grant` —
+   * POST `/server/v1/players/:p/inventory/:itemKey/grant`:
    * platform-managed inventory increment. Used for IAP item delivery,
    * make-goods, or operator-issued items.
    *
-   * Idempotency key is required for correctness — use the IAP
+   * Idempotency key is required for correctness: use the IAP
    * receipt id. The SDK auto-stamps one if omitted but you almost
    * always want to override.
    */
@@ -117,11 +118,11 @@ export class InventoryClient {
   }
 
   /**
-   * POST `/server/v1/players/:p/inventory/:itemKey/revoke` —
+   * POST `/server/v1/players/:p/inventory/:itemKey/revoke`:
    * platform-managed inventory decrement. Used for chargebacks,
    * refunds, or admin corrections.
    *
-   * 409 on insufficient quantity — the audit ledger never goes
+   * 409 on insufficient quantity; the audit ledger never goes
    * negative.
    */
   async revoke(
@@ -139,7 +140,7 @@ export class InventoryClient {
 }
 
 /**
- * `/server/v1/players/:p/wallet(/...)` — server-side currency mint +
+ * `/server/v1/players/:p/wallet(/...)`: server-side currency mint +
  * burn. Counterpart to client SDK's `wallet.debit`: only the server
  * surface can credit balance (mint money), which is why this SDK ships
  * as a separate package from the client SDK.
@@ -148,7 +149,7 @@ export class WalletClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/players/:p/wallet/:economyKey/credit` — atomic
+   * POST `/server/v1/players/:p/wallet/:economyKey/credit`: atomic
    * increment. Used for IAP currency fulfilment, support reissues,
    * and tournament prize distribution.
    *
@@ -169,11 +170,11 @@ export class WalletClient {
   }
 
   /**
-   * POST `/server/v1/players/:p/wallet/:economyKey/debit` — atomic
+   * POST `/server/v1/players/:p/wallet/:economyKey/debit`: atomic
    * decrement. Used for refunds and admin corrections. 409 on
    * insufficient balance.
    *
-   * The client SDK can ALSO debit — this method exists for server-
+   * The client SDK can ALSO debit; this method exists for server-
    * authoritative spends (your backend deducts before granting an
    * item or unlocking content).
    */
@@ -192,7 +193,7 @@ export class WalletClient {
 }
 
 /**
- * `/server/v1/games/:gameId/...lobbies` — push externally-matched
+ * `/server/v1/games/:gameId/...lobbies`: push externally-matched
  * lobbies into Kraty. Use when your studio's own matchmaker (e.g.
  * Steam, GameLift, Photon) already chose a roster of players and
  * you want Kraty to host the event window + scoring for them.
@@ -201,7 +202,7 @@ export class LobbiesClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/games/:gameId/events/:eventKey/lobbies` —
+   * POST `/server/v1/games/:gameId/events/:eventKey/lobbies`:
    * create a lobby with a pre-matched roster. Idempotent on `key`.
    *
    * Requires the event's `leaderboardMode` to be `'lobby_matched'`.
@@ -221,7 +222,7 @@ export class LobbiesClient {
   }
 
   /**
-   * GET `/server/v1/games/:gameId/lobbies/:lobbyId` — server-side
+   * GET `/server/v1/games/:gameId/lobbies/:lobbyId`: server-side
    * lobby read. Wider field set than the client-side `lobbies.read`:
    * exposes audit-relevant fields needed for support tooling.
    */
@@ -235,7 +236,7 @@ export class LobbiesClient {
 }
 
 /**
- * `/server/v1/leaderboards/:key/score` — server-authoritative score
+ * `/server/v1/leaderboards/:key/score`: server-authoritative score
  * submission. Unlike the client SDK's score path, this surface is NOT
  * subject to the game's `acceptClientScores` gate: the `server_integration`
  * key is trusted, so studios that keep scoring server-side (anti-cheat,
@@ -245,7 +246,7 @@ export class LeaderboardsClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/leaderboards/:key/score` — submit a score for a
+   * POST `/server/v1/leaderboards/:key/score`: submit a score for a
    * player on a score-ranked board.
    *
    * <b>Segmentation:</b> on `context` boards pass `opts.segment` as the
@@ -255,7 +256,7 @@ export class LeaderboardsClient {
    *
    * Returns 404 (`KratyServerError` with `isNotFound`) for an unknown
    * player or board, and 400 `score_not_supported` for progression-ranked
-   * boards (which don't accept raw scores — adjust the progression item
+   * boards (which don't accept raw scores; adjust the progression item
    * instead).
    */
   async submitScore(
@@ -280,7 +281,7 @@ export class LeaderboardsClient {
 }
 
 /**
- * `/server/v1/players/:externalId/events/...` — server-authoritative
+ * `/server/v1/players/:externalId/events/...`: server-authoritative
  * event progress. Same shape as the client SDK's progress endpoint, but
  * driven from your backend (trusted simulation, server-side match
  * results) rather than the game client.
@@ -290,8 +291,8 @@ export class EventsClient {
 
   /**
    * POST
-   * `/server/v1/players/:externalId/events/:eventKey/attempts/:attemptId/progress`
-   * — push a metric update onto an in-flight attempt.
+   * `/server/v1/players/:externalId/events/:eventKey/attempts/:attemptId/progress`:
+   * push a metric update onto an in-flight attempt.
    *
    * `mode: 'set'` writes the value as the new metric; `'increment'`
    * adds to the current. Returns the updated attempt plus any
@@ -310,10 +311,44 @@ export class EventsClient {
     );
     return env.data;
   }
+
+  /**
+   * Alias for {@link reportProgress}. The client SDK names this `progress`;
+   * the alias lets you keep the same verb when moving score submission to
+   * your server. `reportProgress` remains the canonical server-SDK name.
+   */
+  progress(
+    externalPlayerId: string,
+    eventKey: string,
+    attemptId: string,
+    input: ReportProgressInput,
+  ): Promise<ReportProgressResult> {
+    return this.reportProgress(externalPlayerId, eventKey, attemptId, input);
+  }
+
+  /**
+   * POST
+   * `/server/v1/players/:externalId/events/:eventKey/attempts/:attemptId/finish`:
+   * end an in-progress attempt now, finalizing with its current score
+   * (server-authoritative counterpart to the client SDK `events.finish`).
+   * `outcome` is `'completed'` (score-attack end / target met) or `'expired'`
+   * (a target event ended early).
+   */
+  async finish(
+    externalPlayerId: string,
+    eventKey: string,
+    attemptId: string,
+  ): Promise<FinishAttemptResult> {
+    const env = await this.client.request<DataEnvelope<FinishAttemptResult>>(
+      'POST',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/events/${encodeURIComponent(eventKey)}/attempts/${encodeURIComponent(attemptId)}/finish`,
+    );
+    return env.data;
+  }
 }
 
 /**
- * `/server/v1/players/:externalId` — unified player snapshot for
+ * `/server/v1/players/:externalId`: unified player snapshot for
  * support / admin tooling. Returns the player row plus their
  * inventory, wallet, and recent grants in one call.
  */
@@ -329,7 +364,7 @@ export class PlayersClient {
   }
 
   /**
-   * POST `/server/v1/players/:externalId/delete` — GDPR Article 17
+   * POST `/server/v1/players/:externalId/delete`: GDPR Article 17
    * right of erasure. Anonymizes the player row in place and
    * cascades through attempts, lobbies, and the Redis leaderboard
    * meta. The financial ledger (grants, item / wallet ledgers) is
@@ -337,10 +372,10 @@ export class PlayersClient {
    * anonymized row.
    *
    * Emits one final `player.deleted` webhook with the original
-   * external id so your backend can mirror the deletion. Idempotent
-   * — replays return `status: 'no_op_*'`, and erasure for a
+   * external id so your backend can mirror the deletion. Idempotent:
+   * replays return `status: 'no_op_*'`, and erasure for a
    * never-existed player succeeds with `status: 'no_op_never_existed'`
-   * (GDPR semantics — there was no data to erase).
+   * (GDPR semantics: there was no data to erase).
    */
   async delete(
     externalPlayerId: string,
@@ -355,7 +390,7 @@ export class PlayersClient {
   }
 
   /**
-   * GET `/server/v1/players/:externalId/export` — GDPR Article 15
+   * GET `/server/v1/players/:externalId/export`: GDPR Article 15
    * right of access. Returns the full machine-readable bundle of
    * everything Kraty stores about the player (profile, attempts,
    * grants, inventory, wallet, lobbies). Each list is hard-capped
@@ -373,7 +408,7 @@ export class PlayersClient {
   }
 
   /**
-   * POST `/server/v1/players/:externalId/ban` — soft-ban a player.
+   * POST `/server/v1/players/:externalId/ban`: soft-ban a player.
    * Gates future SDK writes (events.start / progress / claim /
    * open / debit / consume / register all return 403
    * `player_banned`) without touching existing scores or grants.
@@ -382,7 +417,7 @@ export class PlayersClient {
    * anomaly and bans the player automatically. The actor is
    * recorded as `api_key:<prefix>` on the audit row.
    *
-   * Idempotent — re-banning refreshes the reason and updates the
+   * Idempotent: re-banning refreshes the reason and updates the
    * audit but doesn't re-fire the webhook.
    */
   async ban(
@@ -398,8 +433,8 @@ export class PlayersClient {
   }
 
   /**
-   * POST `/server/v1/players/:fromExternalId/merge-into/:toExternalId`
-   * — fold the source player's record into the target. Reassigns
+   * POST `/server/v1/players/:fromExternalId/merge-into/:toExternalId`:
+   * fold the source player's record into the target. Reassigns
    * attempts, grants, item + wallet ledgers; sums balances on key
    * collision (the target's quantity + the source's quantity);
    * dedupes lobby memberships; rewrites the source row to a
@@ -410,7 +445,7 @@ export class PlayersClient {
    * signs in via OAuth, and the studio backend folds the guest
    * record into the authenticated player.
    *
-   * Idempotent — replaying with the same `fromExternalPlayerId`
+   * Idempotent: replaying with the same `fromExternalPlayerId`
    * after the merge returns `{ status: 'no_op_already_merged' }`
    * with the existing target. Throws `KratyServerError` with
    * `code='not_found'` on missing players and `code='conflict'`
@@ -429,9 +464,9 @@ export class PlayersClient {
   }
 
   /**
-   * POST `/server/v1/players/:externalId/unban` — lift a soft-ban.
+   * POST `/server/v1/players/:externalId/unban`: lift a soft-ban.
    * Symmetric to {@link ban}. The player can resume SDK writes
-   * immediately. Idempotent — unbanning a non-banned player is a
+   * immediately. Idempotent: unbanning a non-banned player is a
    * no-op with `applied: false`.
    */
   async unban(externalPlayerId: string): Promise<UnbanPlayerResult> {
@@ -444,7 +479,7 @@ export class PlayersClient {
 }
 
 /**
- * `/server/v1/migrate/*` — bulk-import endpoints for studios moving
+ * `/server/v1/migrate/*`: bulk-import endpoints for studios moving
  * existing players, wallets, and inventory into Kraty from another
  * platform.
  *
@@ -452,7 +487,7 @@ export class PlayersClient {
  * its own `idempotencyKey` (typically the studio's stable id for
  * that player / wallet entry / inventory holding) so retries are
  * safe at the row level. Bad rows are captured in
- * `MigrateOutcome.failures` — the rest of the batch still applies.
+ * `MigrateOutcome.failures`; the rest of the batch still applies.
  *
  * Studios with larger datasets loop client-side:
  *
@@ -463,7 +498,7 @@ export class PlayersClient {
  * }
  * ```
  *
- * Webhooks are NOT emitted during migration — a 100k-player import
+ * Webhooks are NOT emitted during migration; a 100k-player import
  * would otherwise flood the studio's own backend with
  * `player.registered` / `inventory.changed` / `wallet.changed`
  * deliveries. Studios that want onboarding-side-effects can run them
@@ -473,7 +508,7 @@ export class MigrateClient {
   constructor(private readonly client: KratyServerClient) {}
 
   /**
-   * POST `/server/v1/migrate/players` — bulk-import players from
+   * POST `/server/v1/migrate/players`: bulk-import players from
    * another platform. Each row's `idempotencyKey` is typically the
    * studio's stable player id; replays return the same player
    * without applying twice.
@@ -488,7 +523,7 @@ export class MigrateClient {
   }
 
   /**
-   * POST `/server/v1/migrate/wallet` — bulk-credit wallet balances.
+   * POST `/server/v1/migrate/wallet`: bulk-credit wallet balances.
    * Players are auto-upserted on first contact so the wallet import
    * doesn't need the players import to have run first.
    */
@@ -502,7 +537,7 @@ export class MigrateClient {
   }
 
   /**
-   * POST `/server/v1/migrate/inventory` — bulk-grant inventory rows.
+   * POST `/server/v1/migrate/inventory`: bulk-grant inventory rows.
    * `parameters` lets you carry forward per-instance attributes from
    * the source platform (e.g. a granted potion's roll stats).
    */
@@ -517,7 +552,7 @@ export class MigrateClient {
 }
 
 /**
- * `/server/v1/ping` — connectivity + key-info echo. Useful for
+ * `/server/v1/ping`: connectivity + key-info echo. Useful for
  * deploy-time smoke tests ("is the env var wired to the right key?").
  */
 export class HealthClient {

@@ -6,8 +6,8 @@ import { verifyWebhook } from './webhook.js';
  * The verifier MUST byte-for-byte match the backend's
  * `apps/backend/src/core/webhooks/signing.ts`. To prove that, we
  * compute signatures here using the same algorithm and feed them
- * to `verifyWebhook`. Any divergence — header format, body
- * encoding, tolerance window, constant-time bug — surfaces as a
+ * to `verifyWebhook`. Any divergence, whether header format, body
+ * encoding, tolerance window, or a constant-time bug, surfaces as a
  * failing test.
  */
 

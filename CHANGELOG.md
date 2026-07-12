@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.7.0](https://github.com/PedroTrincheiras/Kraty/compare/sdk-server-typescript-v0.6.0...sdk-server-typescript-v0.7.0) (2026-07-12)
+
+
+### Features
+
+* finish an attempt now (player "end my run") across API + all SDKs ([f1ba2a0](https://github.com/PedroTrincheiras/Kraty/commit/f1ba2a0fa56a51a513bdbc865dd4ea9d854a8a65))
+* **sdks:** leaderboard submitScore (client TS/Unity/Flutter) + server scoring/progress ([02f4e69](https://github.com/PedroTrincheiras/Kraty/commit/02f4e6944813639ca19349ff1a9c28c92e6aa62f))
+* **sdk:** surface synthetic identity + align progress verb across SDKs ([6e346f7](https://github.com/PedroTrincheiras/Kraty/commit/6e346f7328a3f58dd08d51f5f7d15c93e013aba6))
+
+
+### Bug Fixes
+
+* **ci:** repair all workflows after SDK restructure to client/server/ ([85f0524](https://github.com/PedroTrincheiras/Kraty/commit/85f0524ef1777240e04d96dd34dee3ec37ed7315))
+
+
+### Documentation
+
+* rewrite root README + point every SDK README at kraty.io/docs ([0bb9b13](https://github.com/PedroTrincheiras/Kraty/commit/0bb9b1385ef8803aaf2f67a3a63ea746ca4b6e12))
+
 ## [0.5.0](https://github.com/PedroTrincheiras/Kraty/compare/sdk-server-typescript-v0.4.0...sdk-server-typescript-v0.5.0) (2026-07-09)
 
 

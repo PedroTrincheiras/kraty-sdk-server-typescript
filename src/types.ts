@@ -17,7 +17,7 @@ export type GrantEntry =
 
 export interface CreateGrantInput {
   /**
-   * Required — your idempotency token. Reusing the same key with the
+   * Required: your idempotency token. Reusing the same key with the
    * same body returns the original grant; reusing it with a DIFFERENT
    * body returns 409 `idempotency_conflict`. Usually the IAP receipt
    * id or your internal fulfilment id.
@@ -27,13 +27,13 @@ export interface CreateGrantInput {
   kind?: 'reward' | 'crate';
   /** At least one entry. Mix of currencies, items, and crates is allowed. */
   entries: GrantEntry[];
-  /** Optional ISO datetime — grant expires (unclaimable) after this. */
+  /** Optional ISO datetime; grant expires (unclaimable) after this. */
   expiresAt?: string;
   /** Defaults to `'api'`. Use `'admin'` for portal-operator overrides. */
   sourceKind?: 'api' | 'admin';
   /** Free-form tracing id (e.g. IAP receipt id). Surfaces in audit + webhooks. */
   sourceRefId?: string;
-  /** Free-form metadata blob — store receipt body, attribution, etc. */
+  /** Free-form metadata blob: store receipt body, attribution, etc. */
   metadata?: Record<string, unknown>;
 }
 
@@ -65,7 +65,7 @@ export interface AdjustItemInput {
   quantity: number;
   /** Free-form ledger tag (e.g. `'iap_fulfillment'`, `'chargeback'`). */
   reason?: string;
-  /** Tracing id — usually the IAP receipt or refund id. */
+  /** Tracing id, usually the IAP receipt or refund id. */
   sourceRefId?: string;
   /** Auto-stamped by the SDK if omitted. */
   idempotencyKey?: string;
@@ -93,7 +93,7 @@ export interface AdjustWalletResult {
 // ─── Push lobbies ──────────────────────────────────────────────────
 
 export interface PushLobbyInput {
-  /** Studio-owned lobby id — used as the idempotency token. */
+  /** Studio-owned lobby id, used as the idempotency token. */
   key: string;
   /** External player ids. Upserted as players if they don't exist yet. */
   externalPlayerIds: string[];
@@ -125,7 +125,7 @@ export interface Lobby {
 // ─── Player snapshot ───────────────────────────────────────────────
 
 /**
- * Server-side player view — unified snapshot returned by
+ * Server-side player view: unified snapshot returned by
  * `GET /server/v1/players/:externalId`. Wider than the client-side
  * shape: includes the audit-relevant fields a studio backend needs
  * for support tooling.
@@ -163,7 +163,7 @@ export type ErasureReason = 'gdpr_erasure' | 'studio_request' | 'test';
 export interface DeletePlayerInput {
   /**
    * Legal basis recorded on the audit row. Defaults server-side to
-   * `'gdpr_erasure'` — pass `'studio_request'` for account-closure
+   * `'gdpr_erasure'`. Pass `'studio_request'` for account-closure
    * deletions that aren't regulatory, or `'test'` for dev cleanups.
    */
   reason?: ErasureReason;
@@ -324,7 +324,7 @@ export interface SubmitScoreInput {
    * segmentation:
    *
    * - `context` boards: the bucket value to score into.
-   * - `progression` boards: omit — the server derives the bucket from
+   * - `progression` boards: omit, and the server derives the bucket from
    *   the player's progression state.
    * - unsegmented boards: ignored.
    */
@@ -352,7 +352,7 @@ export type AttemptStatus =
   | 'force_completed';
 
 /**
- * One attempt row — mirrors the client SDK's `Attempt` shape so the
+ * One attempt row, mirroring the client SDK's `Attempt` shape so the
  * same rendering code works against either surface.
  */
 export interface Attempt {
@@ -371,7 +371,7 @@ export interface Attempt {
 }
 
 export interface ReportProgressInput {
-  /** `'set'` writes the value as the new metric; `'increment'` adds to the current. */
+  /** `'set'` writes the value as the new metric, while `'increment'` adds to the current. */
   mode: 'set' | 'increment';
   metricValue?: number;
   metrics?: Record<string, number>;
@@ -393,8 +393,15 @@ export interface MilestoneFired {
 
 export interface ReportProgressResult {
   attempt: Attempt;
-  /** Empty when nothing fired this update — never null. */
+  /** Empty when nothing fired this update; never null. */
   milestonesFired: MilestoneFired[];
+}
+
+/** Result of `events.finish()`: the finalized attempt + how it resolved. */
+export interface FinishAttemptResult {
+  attempt: Attempt;
+  /** `'completed'` (score-attack end / target met), or `'expired'` (ended early). */
+  outcome: 'completed' | 'expired';
 }
 
 // ─── Ping ──────────────────────────────────────────────────────────

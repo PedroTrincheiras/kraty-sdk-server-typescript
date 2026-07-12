@@ -61,7 +61,7 @@ const baseOpts = (fetchImpl: typeof fetch) => ({
   timeoutMs: 1_000,
 });
 
-describe('KratyServerClient — request layer', () => {
+describe('KratyServerClient: request layer', () => {
   it('sends Authorization: Bearer <key>', async () => {
     const { fetch, calls } = makeFetch([() => jsonRes(200, { ok: true })]);
     const c = new KratyServerClient(baseOpts(fetch));
@@ -119,7 +119,7 @@ describe('KratyServerClient — request layer', () => {
   });
 });
 
-describe('KratyServer — GrantsClient', () => {
+describe('KratyServer: GrantsClient', () => {
   it('grants.create posts to the right URL and returns the grant', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(201, { data: { id: 'g1', kind: 'reward', contents: {}, sourceKind: 'api', sourceRefId: 'rcpt', parentGrantId: null, status: 'pending', rolledAt: null, claimedAt: null, expiresAt: null, createdAt: '2026-01-01' } }),
@@ -167,7 +167,7 @@ describe('KratyServer — GrantsClient', () => {
   });
 });
 
-describe('KratyServer — InventoryClient', () => {
+describe('KratyServer: InventoryClient', () => {
   it('inventory.grant POSTs to /inventory/:itemKey/grant', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(200, { data: { itemKey: 'starter_chest', quantity: 1, applied: true } }),
@@ -196,7 +196,7 @@ describe('KratyServer — InventoryClient', () => {
   });
 });
 
-describe('KratyServer — WalletClient', () => {
+describe('KratyServer: WalletClient', () => {
   it('wallet.credit posts amount + key to /credit', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(200, { data: { economyKey: 'gold', balance: 600, applied: true } }),
@@ -222,7 +222,7 @@ describe('KratyServer — WalletClient', () => {
   });
 });
 
-describe('KratyServer — LobbiesClient', () => {
+describe('KratyServer: LobbiesClient', () => {
   it('push creates a lobby with the supplied roster + idempotency key', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(201, { data: { id: 'lob1', eventId: 'e1', eventWindowId: 'w1', leaderboardId: 'lb1', mode: 'lobby_matched', status: 'active', capacity: 4, fillBy: null, participantCount: 2, botSlots: 0, startedAt: null, endsAt: null } }),
@@ -253,7 +253,7 @@ describe('KratyServer — LobbiesClient', () => {
   });
 });
 
-describe('KratyServer — PlayersClient', () => {
+describe('KratyServer: PlayersClient', () => {
   it('get returns the unified snapshot', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(200, {
@@ -274,7 +274,7 @@ describe('KratyServer — PlayersClient', () => {
   });
 });
 
-describe('KratyServer — PlayersClient GDPR', () => {
+describe('KratyServer: PlayersClient GDPR', () => {
   it('delete POSTs to /players/:id/delete with reason and returns the outcome', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(200, {
@@ -370,7 +370,7 @@ describe('KratyServer — PlayersClient GDPR', () => {
   });
 });
 
-describe('KratyServer — MigrateClient', () => {
+describe('KratyServer: MigrateClient', () => {
   it('migrate.players POSTs to /migrate/players with the rows envelope', async () => {
     const { fetch, calls } = makeFetch([
       () => jsonRes(200, { data: { applied: 2, skipped: 0, failed: 0, failures: [] } }),
@@ -421,7 +421,7 @@ describe('KratyServer — MigrateClient', () => {
   });
 });
 
-describe('KratyServer — HealthClient', () => {
+describe('KratyServer: HealthClient', () => {
   it('ping returns ok + api key info', async () => {
     const { fetch } = makeFetch([
       () => jsonRes(200, {

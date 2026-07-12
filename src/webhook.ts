@@ -7,7 +7,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
  * header in the form `t=<unixSeconds>,v1=<hex>`, where the v1 hex is
  * `HMAC_SHA256(secret, "<t>.<rawBody>")`. Receivers MUST:
  *
- * 1. Capture the **raw** request body (not the parsed JSON — even a
+ * 1. Capture the **raw** request body (not the parsed JSON; even a
  *    re-stringification can change byte ordering or whitespace, and
  *    that's enough to break the HMAC).
  * 2. Read `X-Signature` from the request headers.
@@ -16,8 +16,8 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
  *    `false`.
  *
  * The function also rejects signatures whose timestamp is more than
- * `toleranceSeconds` (default 300s) in the past — that defeats
- * replay attacks even if an attacker captures a real header — and
+ * `toleranceSeconds` (default 300s) in the past (that defeats
+ * replay attacks even if an attacker captures a real header) and
  * more than 60s in the future, which catches forged headers with
  * tampered clocks.
  *
@@ -57,7 +57,7 @@ export function verifyWebhook(args: {
   secret: string;
   /** Replay-window cap in seconds. Default 300 (5 minutes). */
   toleranceSeconds?: number;
-  /** Override for tests — defaults to `new Date()`. */
+  /** Override for tests; defaults to `new Date()`. */
   now?: Date;
 }): boolean {
   const parsed = parseHeader(args.signatureHeader);

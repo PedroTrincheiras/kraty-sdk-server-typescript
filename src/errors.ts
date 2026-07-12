@@ -1,6 +1,6 @@
 /**
  * Sealed-ish set of error codes the backend returns on the
- * `/server/v1` surface. Subset of the codes the client SDK sees —
+ * `/server/v1` surface. Subset of the codes the client SDK sees:
  * server-side calls never trigger `lobby_forming`, `entry_*`, or
  * `player_secret_invalid`, but they DO see `idempotency_conflict`
  * heavily (every IAP fulfilment lands here on retry).
@@ -33,7 +33,7 @@ export interface KratyServerErrorPayload {
  * `{ error: { code, message, details? } }` envelope. Network failures
  * throw `KratyNetworkError` instead.
  *
- * Use the typed `is...` getters to switch on a code — they're cheaper
+ * Use the typed `is...` getters to switch on a code; they're cheaper
  * to read than a chain of string comparisons and immune to typos.
  * One getter exists per code; if you need to match on a code the SDK
  * hasn't bumped to yet, use the generic `err.is(code)`.
@@ -63,61 +63,61 @@ export class KratyServerError extends Error {
 
   // ── core ─────────────────────────────────────────────────────────
 
-  /** 401 — `Authorization` header missing on a protected route. */
+  /** 401: `Authorization` header missing on a protected route. */
   get isUnauthenticated(): boolean { return this.code === 'unauthenticated'; }
 
-  /** 401 — Bearer token is malformed, revoked, or rejected. */
+  /** 401: Bearer token is malformed, revoked, or rejected. */
   get isSessionInvalid(): boolean { return this.code === 'session_invalid'; }
 
   /**
-   * 403 — auth was valid but the permission set / studio / game
-   * didn't match the route. Usually a misconfigured key — the
+   * 403: auth was valid but the permission set / studio / game
+   * didn't match the route. Usually a misconfigured key: the
    * `server_integration` key in your env should match the game
    * you're calling against.
    */
   get isForbidden(): boolean { return this.code === 'forbidden'; }
 
   /**
-   * 404 — referenced resource doesn't exist or isn't visible to
+   * 404: referenced resource doesn't exist or isn't visible to
    * this studio. For grant ack: the grant id was never minted. For
    * inventory grant: the item key isn't in the catalog. For player
    * lookup: no player with that externalId.
    */
   get isNotFound(): boolean { return this.code === 'not_found'; }
 
-  /** 400 — request body / query failed schema validation. `details` carries field-level errors. */
+  /** 400: request body / query failed schema validation. `details` carries field-level errors. */
   get isValidationFailed(): boolean { return this.code === 'validation_failed'; }
 
-  /** 409 — generic mutation conflict (e.g. wallet debit on a 0 balance, mode mismatch). */
+  /** 409: generic mutation conflict (e.g. wallet debit on a 0 balance, mode mismatch). */
   get isConflict(): boolean { return this.code === 'conflict'; }
 
   /**
-   * 429 — per-key rate limit exceeded. `Retry-After` header carries
+   * 429: per-key rate limit exceeded. `Retry-After` header carries
    * the wait. The SDK auto-retries with backoff before surfacing
-   * this — by the time you see it, the retry budget is exhausted.
+   * this; by the time you see it, the retry budget is exhausted.
    */
   get isRateLimited(): boolean { return this.code === 'rate_limited'; }
 
-  /** 500 — unhandled exception. Logged + alerted server-side. */
+  /** 500: unhandled exception. Logged + alerted server-side. */
   get isInternalError(): boolean { return this.code === 'internal_error'; }
 
-  /** 403 — cross-studio access attempt (RLS rejected the row). Misconfigured key. */
+  /** 403: cross-studio access attempt (RLS rejected the row). Misconfigured key. */
   get isTenantMismatch(): boolean { return this.code === 'tenant_mismatch'; }
 
   /**
-   * 409 — the same `idempotencyKey` was used with a different
+   * 409: the same `idempotencyKey` was used with a different
    * request body within the 24h cache TTL. Means a duplicate IAP
-   * fulfilment is in flight with a different payload — investigate
+   * fulfilment is in flight with a different payload; investigate
    * before retrying.
    */
   get isIdempotencyConflict(): boolean { return this.code === 'idempotency_conflict'; }
 
   // ── per-game state ───────────────────────────────────────────────
 
-  /** 409 — the event is configured but disabled. Server fulfilment paths usually shouldn't hit this. */
+  /** 409: the event is configured but disabled. Server fulfilment paths usually shouldn't hit this. */
   get isEventDisabled(): boolean { return this.code === 'event_disabled'; }
 
-  /** 400 — a manual-grant entry referenced an unknown metric / item / currency key. */
+  /** 400: a manual-grant entry referenced an unknown metric / item / currency key. */
   get isInvalidMetric(): boolean { return this.code === 'invalid_metric'; }
 }
 

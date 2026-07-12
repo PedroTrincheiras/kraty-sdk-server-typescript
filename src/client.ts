@@ -3,12 +3,12 @@ import { KratyServerError, KratyNetworkError, type KratyServerErrorPayload } fro
 /**
  * SDK name + version, sent as `X-Kraty-SDK: <name>/<version>` on
  * every request. Lets the backend tell which SDK + version sent a
- * given request — useful for debugging stale-SDK deployments and
+ * given request, useful for debugging stale-SDK deployments and
  * for graceful deprecation handling. Bump in lockstep with
  * package.json `version`.
  */
 const SDK_NAME = '@kraty/server-sdk';
-const SDK_VERSION = '0.0.1';
+const SDK_VERSION = '0.6.0';
 const SDK_USER_AGENT = `${SDK_NAME}/${SDK_VERSION}`;
 
 /**
@@ -17,13 +17,13 @@ const SDK_USER_AGENT = `${SDK_NAME}/${SDK_VERSION}`;
 export interface KratyServerOptions {
   /**
    * `server_integration` API key in the `{prefix}.{secret}` form
-   * returned by the portal. Never use a `client_sdk` key here — the
+   * returned by the portal. Never use a `client_sdk` key here; the
    * server surface rejects it with 403.
    */
   apiKey: string;
   /** Override only for testing / staging. Production servers always hit the default. */
   baseUrl?: string;
-  /** Per-request timeout in milliseconds. Defaults to 15s (longer than client SDK — server calls are usually batchier). */
+  /** Per-request timeout in milliseconds. Defaults to 15s (longer than client SDK, since server calls are usually batchier). */
   timeoutMs?: number;
   /**
    * Retry configuration. `attempts` is the TOTAL number of HTTP calls
@@ -106,7 +106,7 @@ export class KratyServerClient {
     this.fetchImpl = opts.fetch ?? globalThis.fetch;
     if (!this.fetchImpl) {
       throw new TypeError(
-        'KratyServerClient: no fetch implementation available — pass `fetch` in options or run on Node 18+',
+        'KratyServerClient: no fetch implementation available; pass `fetch` in options or run on Node 18+',
       );
     }
     this.authHeader = `Bearer ${opts.apiKey}`;
