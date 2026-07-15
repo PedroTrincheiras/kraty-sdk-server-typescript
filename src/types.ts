@@ -326,6 +326,11 @@ export interface SubmitScoreInput {
    * - `context` boards: the bucket value to score into.
    * - `progression` boards: omit, and the server derives the bucket from
    *   the player's progression state.
+   * - `country` boards: omit — the server resolves it from the player's
+   *   stored country (server-authoritative; a submit can't score into
+   *   another country's board).
+   * - combined boards (multiple axes): omit — every axis is derived
+   *   server-side, so one `segment` value can't address them all.
    * - unsegmented boards: ignored.
    */
   segment?: string;

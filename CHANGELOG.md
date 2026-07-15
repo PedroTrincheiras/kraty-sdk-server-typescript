@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/PedroTrincheiras/Kraty/compare/sdk-server-typescript-v0.7.0...sdk-server-typescript-v0.8.0) (2026-07-15)
+
+
+### Features
+
+* **players:** per-player synthetic-identity override (server SDK + admin + portal + docs) ([906fd8c](https://github.com/PedroTrincheiras/Kraty/commit/906fd8c74cab043b5c5fcca5150dbf594a341e79))
+
+
+### Bug Fixes
+
+* **leaderboards:** merge server-derived country on direct-score paths ([72ff4a7](https://github.com/PedroTrincheiras/Kraty/commit/72ff4a75428f4f9ac952ccfc65b7649d75d3193f))
+
+
+### Documentation
+
+* **sdks:** bump install snippets + READMEs for the v0.11.0 / v0.8.0 release ([8cafc26](https://github.com/PedroTrincheiras/Kraty/commit/8cafc26a6d7618c700b9177bedb6471d29efcfc7))
+* **sdks:** bump install snippets + READMEs to match the release-please tag versions ([c66ffaf](https://github.com/PedroTrincheiras/Kraty/commit/c66ffaf27e1ac495957067003a411df8857a1c53))
+
 ## [0.7.0](https://github.com/PedroTrincheiras/Kraty/compare/sdk-server-typescript-v0.6.0...sdk-server-typescript-v0.7.0) (2026-07-12)
 
 

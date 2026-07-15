@@ -364,6 +364,31 @@ export class PlayersClient {
   }
 
   /**
+   * PUT `/server/v1/players/:externalId/identity`: override the player's
+   * synthetic identity (display name + optional avatar). It's normally
+   * auto-generated from the game's pool on first contact; call this to set a
+   * custom one (e.g. the player's chosen handle) that shows on leaderboards
+   * and in the client SDK. The player must already be registered — 404
+   * (`KratyServerError` with `isNotFound`) otherwise.
+   */
+  async setIdentity(
+    externalPlayerId: string,
+    identity: { name: string; avatar?: string | null },
+  ): Promise<{ name: string; avatar?: string }> {
+    const env = await this.client.request<
+      DataEnvelope<{
+        externalPlayerId: string;
+        syntheticIdentity: { name: string; avatar?: string };
+      }>
+    >(
+      'PUT',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/identity`,
+      identity,
+    );
+    return env.data.syntheticIdentity;
+  }
+
+  /**
    * POST `/server/v1/players/:externalId/delete`: GDPR Article 17
    * right of erasure. Anonymizes the player row in place and
    * cascades through attempts, lobbies, and the Redis leaderboard
