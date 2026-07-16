@@ -26,9 +26,9 @@ repo against a tagged release. Each release ships compiled `dist/`
 artefacts so no build step is needed on your side.
 
 ```bash
-npm install github:PedroTrincheiras/kraty-sdk-server-typescript#v0.10.0
+npm install github:PedroTrincheiras/kraty-sdk-server-typescript#v0.11.0
 # or with pnpm:
-pnpm add github:PedroTrincheiras/kraty-sdk-server-typescript#v0.10.0
+pnpm add github:PedroTrincheiras/kraty-sdk-server-typescript#v0.11.0
 ```
 
 ## Quickstart
