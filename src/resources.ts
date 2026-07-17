@@ -7,10 +7,13 @@ import type {
   AdjustWalletResult,
   BanPlayerInput,
   BanPlayerResult,
+  BlockedPlayer,
   CreateGrantInput,
   MergePlayerResult,
   DeletePlayerInput,
   DeletePlayerResult,
+  Friend,
+  FriendRequests,
   Grant,
   Lobby,
   MigrateInventoryRow,
@@ -500,6 +503,48 @@ export class PlayersClient {
       `/server/v1/players/${encodeURIComponent(externalPlayerId)}/unban`,
     );
     return env.data;
+  }
+
+  /**
+   * GET `/server/v1/players/:externalId/friends`: read ANY player's
+   * accepted friends, each enriched with display identity and live
+   * presence (online / last-active / status). Read-only support /
+   * moderation surface — the player's own add/accept/block actions live
+   * on the client SDK's `friends` client. Returns 404
+   * (`KratyServerError` with `isNotFound`) when the player is unknown.
+   */
+  async friends(externalPlayerId: string): Promise<Friend[]> {
+    const env = await this.client.request<DataEnvelope<{ friends: Friend[] }>>(
+      'GET',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/friends`,
+    );
+    return env.data.friends;
+  }
+
+  /**
+   * GET `/server/v1/players/:externalId/friends/requests`: the player's
+   * pending incoming + outgoing friend requests. Read-only. Returns 404
+   * (`KratyServerError` with `isNotFound`) when the player is unknown.
+   */
+  async friendRequests(externalPlayerId: string): Promise<FriendRequests> {
+    const env = await this.client.request<DataEnvelope<FriendRequests>>(
+      'GET',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/friends/requests`,
+    );
+    return env.data;
+  }
+
+  /**
+   * GET `/server/v1/players/:externalId/blocks`: the players this
+   * player has blocked. Read-only. Returns 404 (`KratyServerError` with
+   * `isNotFound`) when the player is unknown.
+   */
+  async blocks(externalPlayerId: string): Promise<BlockedPlayer[]> {
+    const env = await this.client.request<DataEnvelope<{ blocked: BlockedPlayer[] }>>(
+      'GET',
+      `/server/v1/players/${encodeURIComponent(externalPlayerId)}/blocks`,
+    );
+    return env.data.blocked;
   }
 }
 

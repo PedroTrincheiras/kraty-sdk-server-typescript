@@ -370,6 +370,97 @@ describe('KratyServer: PlayersClient GDPR', () => {
   });
 });
 
+describe('KratyServer: PlayersClient friends (read-only)', () => {
+  it('friends GETs /players/:id/friends and unwraps data.friends', async () => {
+    const { fetch, calls } = makeFetch([
+      () => jsonRes(200, {
+        data: {
+          friends: [
+            {
+              externalPlayerId: 'bob',
+              displayIdentity: { name: 'Bob', avatar: null, country: 'PT' },
+              friendsSince: '2026-01-01T00:00:00.000Z',
+              online: true,
+              lastActiveAt: '2026-06-10T12:00:00.000Z',
+              status: 'in_match',
+            },
+          ],
+        },
+      }),
+    ]);
+    const k = new KratyServer(baseOpts(fetch));
+    const friends = await k.players.friends('alice');
+    expect(friends).toHaveLength(1);
+    expect(friends[0]?.externalPlayerId).toBe('bob');
+    expect(friends[0]?.online).toBe(true);
+    expect(friends[0]?.displayIdentity?.name).toBe('Bob');
+    expect(calls[0]?.method).toBe('GET');
+    expect(calls[0]?.url).toContain('/server/v1/players/alice/friends');
+  });
+
+  it('friendRequests GETs /friends/requests and returns incoming + outgoing', async () => {
+    const { fetch, calls } = makeFetch([
+      () => jsonRes(200, {
+        data: {
+          incoming: [
+            {
+              requestId: 'r1',
+              direction: 'incoming',
+              player: { externalPlayerId: 'carol', displayIdentity: { name: 'Carol' } },
+              createdAt: '2026-06-01T00:00:00.000Z',
+            },
+          ],
+          outgoing: [],
+        },
+      }),
+    ]);
+    const k = new KratyServer(baseOpts(fetch));
+    const reqs = await k.players.friendRequests('alice');
+    expect(reqs.incoming).toHaveLength(1);
+    expect(reqs.incoming[0]?.direction).toBe('incoming');
+    expect(reqs.outgoing).toHaveLength(0);
+    expect(calls[0]?.method).toBe('GET');
+    expect(calls[0]?.url).toContain('/server/v1/players/alice/friends/requests');
+  });
+
+  it('blocks GETs /players/:id/blocks and unwraps data.blocked', async () => {
+    const { fetch, calls } = makeFetch([
+      () => jsonRes(200, {
+        data: {
+          blocked: [
+            {
+              externalPlayerId: 'mallory',
+              displayIdentity: null,
+              blockedAt: '2026-05-01T00:00:00.000Z',
+            },
+          ],
+        },
+      }),
+    ]);
+    const k = new KratyServer(baseOpts(fetch));
+    const blocked = await k.players.blocks('alice');
+    expect(blocked).toHaveLength(1);
+    expect(blocked[0]?.externalPlayerId).toBe('mallory');
+    expect(blocked[0]?.displayIdentity).toBeNull();
+    expect(calls[0]?.url).toContain('/server/v1/players/alice/blocks');
+  });
+
+  it('friends surfaces 404 as a typed not-found error', async () => {
+    const { fetch } = makeFetch([
+      () => jsonRes(404, { error: { code: 'not_found', message: "Player 'ghost' not found" } }),
+    ]);
+    const k = new KratyServer(baseOpts(fetch));
+    let caught: unknown = null;
+    try {
+      await k.players.friends('ghost');
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(KratyServerError);
+    expect((caught as KratyServerError).isNotFound).toBe(true);
+  });
+});
+
 describe('KratyServer: MigrateClient', () => {
   it('migrate.players POSTs to /migrate/players with the rows envelope', async () => {
     const { fetch, calls } = makeFetch([

@@ -409,6 +409,60 @@ export interface FinishAttemptResult {
   outcome: 'completed' | 'expired';
 }
 
+// ─── Friends / social graph (read-only) ────────────────────────────
+
+/**
+ * Public identity envelope surfaced on friend / request / block rows:
+ * a player's display name plus optional avatar + ISO-3166 alpha-2
+ * country. Mirrors the client SDK's `PlayerIdentity`. `null` on a row
+ * whose subject has no resolvable identity.
+ */
+export interface PlayerIdentity {
+  name: string;
+  avatar?: string | null;
+  country?: string | null;
+}
+
+/**
+ * A confirmed friend, enriched with identity + live presence. Mirrors
+ * the OpenAPI `Friend` component and the client SDK's `Friend`.
+ * `online` / `lastActiveAt` / `status` come from the friend's
+ * heartbeat and are only fresh while they keep beating.
+ */
+export interface Friend {
+  externalPlayerId: string;
+  displayIdentity: PlayerIdentity | null;
+  /** ISO timestamp the friendship was established. */
+  friendsSince: string;
+  online: boolean;
+  /** ISO timestamp of their last heartbeat, or null when never/expired. */
+  lastActiveAt: string | null;
+  /** Free-form client-set status ("in_match", "lobby", …), or null. */
+  status: string | null;
+}
+
+export type FriendRequestDirection = 'incoming' | 'outgoing';
+
+/** A pending friend request, incoming or outgoing. */
+export interface FriendRequest {
+  requestId: string;
+  direction: FriendRequestDirection;
+  player: { externalPlayerId: string; displayIdentity: PlayerIdentity | null };
+  createdAt: string;
+}
+
+export interface FriendRequests {
+  incoming: FriendRequest[];
+  outgoing: FriendRequest[];
+}
+
+/** A player the subject has blocked. */
+export interface BlockedPlayer {
+  externalPlayerId: string;
+  displayIdentity: PlayerIdentity | null;
+  blockedAt: string;
+}
+
 // ─── Ping ──────────────────────────────────────────────────────────
 
 export interface ApiKeyInfo {
